@@ -65,7 +65,7 @@ public class GetterProcessor extends AbstractProcessor {
                     }
 
                     jcVariableDeclList.forEach(jcVariableDecl -> {
-                        messager.printMessage(Diagnostic.Kind.NOTE, jcClassDecl.getSimpleName() + "has been processed!");
+                        messager.printMessage(Diagnostic.Kind.NOTE, jcClassDecl.getSimpleName() + " has been processed!");
                         jcClassDecl.defs = jcClassDecl.defs.prepend(makeGetterMethodDecl(jcVariableDecl));
                     });
                     super.visitClassDef(jcClassDecl);
