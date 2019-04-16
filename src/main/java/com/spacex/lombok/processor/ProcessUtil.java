@@ -68,12 +68,68 @@ public class ProcessUtil {
     }
 
 
-    private boolean isSetMethod(JCTree jcTree) {
+    private static boolean isSetMethod(JCTree jcTree) {
+        if (jcTree.getKind().equals(JCTree.Kind.METHOD)) {
+            JCTree.JCMethodDecl jcMethodDecl = (JCTree.JCMethodDecl) jcTree;
+            return jcMethodDecl.name.toString().startsWith(SET)
+                    && jcMethodDecl.params.size() == 1
+                    && !jcMethodDecl.mods.getFlags().contains(Modifier.STATIC);
+        }
+
         return false;
     }
 
-    private static List<JCTree.JCVariableDecl> getSetJCMethods(JCTree.JCClassDecl jcClassDecl) {
-        return null;
+    static List<JCTree.JCMethodDecl> getSetJCMethods(JCTree.JCClassDecl jcClassDecl) {
+        ListBuffer<JCTree.JCMethodDecl> setJCMethods = new ListBuffer<>();
+        for (JCTree jcTree : jcClassDecl.defs) {
+            if (isSetMethod(jcTree)) {
+                setJCMethods.append((JCTree.JCMethodDecl) jcTree);
+            }
+        }
+
+        return setJCMethods.toList();
+    }
+
+    static boolean hasNoArgsConstructor(JCTree.JCClassDecl jcClassDecl) {
+
+        for (JCTree jcTree : jcClassDecl.defs) {
+            if (jcTree.getKind().equals(JCTree.Kind.METHOD)) {
+                JCTree.JCMethodDecl jcMethodDecl = (JCTree.JCMethodDecl) jcTree;
+                if (CONSTRUCTOR_NAME.equals(jcMethodDecl.name.toString())) {
+                    if (jcMethodDecl.params.isEmpty()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    static boolean hasAllArgsConstructor(List<JCTree.JCVariableDecl> jcVariableDecls, JCTree.JCClassDecl jcClassDecl) {
+        for (JCTree jcTree : jcClassDecl.defs) {
+            if (jcTree.getKind().equals(JCTree.Kind.METHOD)) {
+                JCTree.JCMethodDecl jcMethodDecl = (JCTree.JCMethodDecl) jcTree;
+                if (CONSTRUCTOR_NAME.equals(jcMethodDecl.name.toString())) {
+                    if (jcVariableDecls.size() == jcMethodDecl.params.size()) {
+                        boolean isEqual = true;
+
+                        for (int i = 0; i < jcVariableDecls.size(); i++) {
+                            if (!jcVariableDecls.get(i).vartype.type.equals(jcMethodDecl.params.get(i).vartype.type)) {
+                                isEqual = false;
+                                break;
+                            }
+                        }
+
+                        if (isEqual) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 }
