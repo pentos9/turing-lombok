@@ -44,7 +44,7 @@ public class AllArgsConstructorProcessor extends BaseProcessor {
                         jcClassDecl.defs = jcClassDecl.defs.append(jcMethodDecl);
                     }
 
-                    after(jcClassDecl);
+                    after();
 
                     messager.printMessage(Diagnostic.Kind.NOTE, "process class [" + jcClassDecl.name.toString() + "],end");
 
@@ -91,7 +91,7 @@ public class AllArgsConstructorProcessor extends BaseProcessor {
         this.fieldJCVariables = ProcessUtil.getJCVariables(jcClassDecl);
     }
 
-    private void after(JCTree.JCClassDecl jcClassDecl) {
+    private void after() {
         this.fieldJCVariables = null;
     }
 }
