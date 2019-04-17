@@ -55,7 +55,7 @@ public class ProcessUtil {
         return false;
     }
 
-    static List<JCTree.JCVariableDecl> getJCVariable(JCTree.JCClassDecl jcClassDecl) {
+    static List<JCTree.JCVariableDecl> getJCVariables(JCTree.JCClassDecl jcClassDecl) {
         ListBuffer<JCTree.JCVariableDecl> jcVariableDecls = new ListBuffer<>();
 
         for (JCTree jcTree : jcClassDecl.defs) {
