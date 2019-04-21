@@ -55,7 +55,7 @@ public class ProcessUtil {
         return false;
     }
 
-    static List<JCTree.JCVariableDecl> getJCVariable(JCTree.JCClassDecl jcClassDecl) {
+    static List<JCTree.JCVariableDecl> getJCVariables(JCTree.JCClassDecl jcClassDecl) {
         ListBuffer<JCTree.JCVariableDecl> jcVariableDecls = new ListBuffer<>();
 
         for (JCTree jcTree : jcClassDecl.defs) {
@@ -130,6 +130,44 @@ public class ProcessUtil {
         }
 
         return false;
+    }
+
+    static boolean hasSetMethod(JCTree.JCVariableDecl jcVariableDecl, JCTree.JCClassDecl jcClassDecl) {
+        String setMethodName = fromPropertyNameToSetMethodName(jcVariableDecl.name.toString());
+        for (JCTree jcTree : jcClassDecl.defs) {
+            if (jcTree.getKind().equals(JCTree.Kind.METHOD)) {
+                JCTree.JCMethodDecl jcMethodDecl = (JCTree.JCMethodDecl) jcTree;
+                if (setMethodName.equals(jcMethodDecl.name.toString())
+                        && jcMethodDecl.params.size() == 1
+                        && jcMethodDecl.params.get(0).vartype.type.equals(jcVariableDecl.vartype.type)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    static boolean hasGetMethod(JCTree.JCVariableDecl jcVariableDecl, JCTree.JCClassDecl jcClassDecl) {
+        String getMethodName = fromPropertyNameToGetMethodName(jcVariableDecl.name.toString());
+        for (JCTree jcTree : jcClassDecl.defs) {
+            if (jcTree.getKind().equals(JCTree.Kind.METHOD)) {
+                JCTree.JCMethodDecl jcMethodDecl = (JCTree.JCMethodDecl) jcTree;
+                if (getMethodName.equals(jcMethodDecl.name.toString())
+                        && jcMethodDecl.params.size() == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static String fromPropertyNameToSetMethodName(String propertyName) {
+        return SET + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+    }
+
+    static String fromPropertyNameToGetMethodName(String propertyName) {
+        return GET + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
     }
 
 }
