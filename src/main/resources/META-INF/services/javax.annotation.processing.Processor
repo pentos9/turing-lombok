@@ -1,3 +1,4 @@
 com.spacex.lombok.test.GetterProcessor
 com.spacex.lombok.processor.NoArgsConstructorProcessor
 com.spacex.lombok.processor.AllArgsConstructorProcessor
+com.spacex.lombok.processor.BuilderProcessor

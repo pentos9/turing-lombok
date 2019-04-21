@@ -7,6 +7,7 @@ import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -14,7 +15,9 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.Set;
 
+import static com.spacex.lombok.processor.ProcessUtil.BUILDER_METHOD_NAME;
 import static com.spacex.lombok.processor.ProcessUtil.BUILDER_STATIC_METHOD_NAME;
+import static com.spacex.lombok.processor.ProcessUtil.THIS;
 
 public class BuilderProcessor extends BaseProcessor {
 
@@ -64,15 +67,97 @@ public class BuilderProcessor extends BaseProcessor {
     }
 
     private JCTree createBuildJCMethod() {
-        return null;
+        ListBuffer<JCTree.JCExpression> jcExpressions = new ListBuffer<>();
+        for (JCTree.JCVariableDecl jcVariable : fieldJCVariables) {
+            jcExpressions.append(treeMaker.Select(
+                    treeMaker.Ident(names.fromString(THIS)),
+                    names.fromString(jcVariable.name.toString())
+            ));
+        }
+
+        ListBuffer<JCTree.JCStatement> jcStatements = new ListBuffer<>();
+        jcStatements.append(treeMaker.Return(
+                treeMaker.NewClass(
+                        null,
+                        List.nil(),
+                        treeMaker.Ident(className),
+                        jcExpressions.toList(),
+                        null
+                )
+        ));
+
+        JCTree.JCBlock jcBlock = treeMaker.Block(0, jcStatements.toList());
+
+        return treeMaker.MethodDef(
+                treeMaker.Modifiers(Flags.PUBLIC),
+                names.fromString(BUILDER_METHOD_NAME),
+                treeMaker.Ident(className),
+                List.nil(),
+                List.nil(),
+                List.nil(),
+                jcBlock,
+                null
+        );
     }
 
     private List<JCTree> createSetJCMethods() {
-        return null;
+        ListBuffer<JCTree> setMethods = new ListBuffer<>();
+        for (JCTree.JCVariableDecl jcVariableDecl : fieldJCVariables) {
+            setMethods.append(createSetJCMethod(jcVariableDecl));
+
+        }
+        return setMethods.toList();
     }
 
+    private JCTree createSetJCMethod(JCTree.JCVariableDecl jcVariableDecl) {
+        ListBuffer<JCTree.JCStatement> jcStatements = new ListBuffer<>();
+
+        jcStatements.append(
+                treeMaker.Exec(
+                        treeMaker.Assign(
+                                treeMaker.Select(
+                                        treeMaker.Ident(names.fromString(THIS)),
+                                        names.fromString(jcVariableDecl.name.toString())
+                                ),
+                                treeMaker.Ident(names.fromString(jcVariableDecl.name.toString()))
+                        )
+                )
+        );
+
+        jcStatements.append(
+                treeMaker.Return(
+                        treeMaker.Ident(names.fromString(THIS))
+                )
+        );
+
+        JCTree.JCBlock jcBlock = treeMaker.Block(0, jcStatements.toList());
+
+        return treeMaker.MethodDef(
+                treeMaker.Modifiers(Flags.PUBLIC),
+                names.fromString(jcVariableDecl.name.toString()),
+                treeMaker.Ident(builderClassName),
+                List.nil(),
+                List.of(ProcessUtil.cloneJCVariableDeclAsParam(treeMaker, jcVariableDecl)),
+                List.nil(),
+                jcBlock,
+                null
+        );
+    }
+
+
     private List<JCTree> createVariables() {
-        return null;
+        ListBuffer<JCTree> jcVariables = new ListBuffer<>();
+        for (JCTree.JCVariableDecl jcVariableDecl : fieldJCVariables) {
+            jcVariables.append(
+                    treeMaker.VarDef(
+                            treeMaker.Modifiers(Flags.PRIVATE),
+                            names.fromString(jcVariableDecl.name.toString()),
+                            jcVariableDecl.vartype,
+                            null
+                    ));
+        }
+
+        return jcVariables.toList();
     }
 
 
